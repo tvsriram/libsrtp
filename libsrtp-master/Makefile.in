@@ -56,6 +56,9 @@ gdoi	= @GDOI_OBJS@
 # Random source.
 RNG_OBJS = @RNG_OBJS@
 
+# Openssl related crypto.
+OPENSSL_OBJS = @OPENSSL_OBJS@
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 top_builddir = @top_builddir@
@@ -95,7 +98,10 @@ rng     = crypto/rng/$(RNG_OBJS) crypto/rng/prng.o crypto/rng/ctr_prng.o
 err     = crypto/kernel/err.o
 
 kernel  = crypto/kernel/crypto_kernel.o  crypto/kernel/alloc.o   \
-          crypto/kernel/key.o $(rng) $(err) # $(ust) 
+          crypto/kernel/key.o $(rng) $(err) # $(ust)
+
+external = $(OPENSSL_OBJS) \
+           external/openssl/openssl_crypto.o
 
 cryptobj =  $(ciphers) $(hashes) $(math) $(stat) $(kernel) $(replay)
 
@@ -103,7 +109,7 @@ cryptobj =  $(ciphers) $(hashes) $(math) $(stat) $(kernel) $(replay)
 
 srtpobj = srtp/srtp.o srtp/ekt.o
 
-libsrtp.a: $(srtpobj) $(cryptobj) $(gdoi)
+libsrtp.a: $(srtpobj) $(cryptobj) $(gdoi) $(external)
 	ar cr libsrtp.a $^
 	$(RANLIB) libsrtp.a
 
@@ -207,7 +213,7 @@ uninstall:
 	-rmdir $(DESTDIR)$(includedir)/srtp
 
 clean:
-	rm -rf $(cryptobj) $(srtpobj) $(cryptomath) TAGS \
+	rm -rf $(cryptobj) $(srtpobj) $(cryptomath) $(external) TAGS \
         libcryptomath.a libsrtp.a core *.core test/core
 	for a in * */* */*/*; do			\
               if [ -f "$$a~" ] ; then rm -f $$a~; fi;	\

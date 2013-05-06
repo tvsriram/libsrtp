@@ -104,17 +104,22 @@ srtp_packet_to_string(srtp_hdr_t *hdr, int packet_len);
 double
 mips_estimate(int num_trials, int *ignore);
 
+err_status_t
+openssl_crypto_init();
+
+
 extern uint8_t test_key[30];
 
 void
 usage(char *prog_name) {
   printf("usage: %s [ -t ][ -c ][ -v ][-d <debug_module> ]* [ -l ]\n"
          "  -t         run timing test\n"
-	 "  -r         run rejection timing test\n"
+         "  -r         run rejection timing test\n"
          "  -c         run codec timing test\n"
          "  -v         run validation tests\n"
          "  -d <mod>   turn on debugging module <mod>\n"
-         "  -l         list debugging modules\n", prog_name);
+         "  -l         list debugging modules\n"
+         "  -o         use openssl for crypto\n", prog_name);
   exit(1);
 }
 
@@ -180,7 +185,7 @@ main (int argc, char *argv[]) {
 
   /* process input arguments */
   while (1) {
-    q = getopt_s(argc, argv, "trcvld:");
+    q = getopt_s(argc, argv, "trcvlod:");
     if (q == -1) 
       break;
     switch (q) {
@@ -205,6 +210,20 @@ main (int argc, char *argv[]) {
         printf("error: set debug module (%s) failed\n", optarg_s);
         exit(1);
       }  
+      break;
+    case 'o':
+      status = 0;
+      status = openssl_crypto_init();
+      if (status) {
+        if (status == -1) {
+          printf("error: openssl not compiled into libsrtp\n");
+          exit(1);
+        } else {
+          printf("error: openssl could not be enabled in libsrtp\n");
+          exit(1);
+        }
+      }
+      printf("Using openssl for crypto\n");
       break;
     default:
       usage(argv[0]);
